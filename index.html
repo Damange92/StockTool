@@ -127,7 +127,7 @@
         <tr>
           <th>Titolo</th>
           <th>Qtà</th>
-          <th>Acq. €</th>
+          <th>Acq. €/az</th>
           <th>Att. $</th>
           <th>Att. €</th>
           <th>Var. %</th>
@@ -158,8 +158,9 @@
     <input type="number" id="fQty" inputmode="decimal" step="any" placeholder="10">
   </div>
   <div class="field">
-    <label>Prezzo di acquisto per azione (EUR)</label>
-    <input type="number" id="fPrice" inputmode="decimal" step="any" placeholder="450.00">
+    <label>Costo totale di acquisto (EUR)</label>
+    <input type="number" id="fPrice" inputmode="decimal" step="any" placeholder="4500.00">
+    <div class="hint">Inserisci quanto hai speso in totale: il prezzo per azione viene calcolato automaticamente.</div>
   </div>
   <div class="sheetbtns">
     <button class="btn secondary" id="cancelRow">Annulla</button>
@@ -231,6 +232,9 @@
   }
   function fmtQty(n){
     return n.toLocaleString("it-IT",{maximumFractionDigits:4});
+  }
+  function round2(n){
+    return Math.round(n * 100) / 100;
   }
 
   function showToast(msg){
@@ -427,7 +431,7 @@
       document.getElementById("rowSheetTitle").textContent = "Modifica posizione";
       document.getElementById("fTicker").value = p.ticker;
       document.getElementById("fQty").value = p.qty;
-      document.getElementById("fPrice").value = p.buyPrice;
+      document.getElementById("fPrice").value = round2(p.buyPrice * p.qty);
       document.getElementById("deleteRowWrap").style.display = "flex";
     } else {
       document.getElementById("rowSheetTitle").textContent = "Nuova posizione";
@@ -456,12 +460,13 @@
   document.getElementById("saveRow").addEventListener("click", function(){
     var ticker = document.getElementById("fTicker").value.trim().toUpperCase();
     var qty = parseFloat(document.getElementById("fQty").value);
-    var price = parseFloat(document.getElementById("fPrice").value);
+    var totalCost = parseFloat(document.getElementById("fPrice").value);
+    var price = totalCost / qty;
     var id = document.getElementById("editId").value;
 
     if(!ticker){ showToast("Inserisci la sigla del titolo."); return; }
     if(!(qty > 0)){ showToast("Inserisci una quantità valida."); return; }
-    if(!(price > 0)){ showToast("Inserisci un prezzo di acquisto valido."); return; }
+    if(!(totalCost > 0)){ showToast("Inserisci un costo totale valido."); return; }
 
     if(id){
       var p = state.positions.find(function(x){ return x.id === id; });
