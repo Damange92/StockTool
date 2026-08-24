@@ -236,6 +236,9 @@
   function round2(n){
     return Math.round(n * 100) / 100;
   }
+  function parseDecimal(s){
+    return parseFloat(String(s).trim().replace(",", "."));
+  }
 
   function showToast(msg){
     var t = document.getElementById("toast");
@@ -459,8 +462,8 @@
 
   document.getElementById("saveRow").addEventListener("click", function(){
     var ticker = document.getElementById("fTicker").value.trim().toUpperCase();
-    var qty = parseFloat(document.getElementById("fQty").value);
-    var totalCost = parseFloat(document.getElementById("fPrice").value);
+    var qty = parseDecimal(document.getElementById("fQty").value);
+    var totalCost = parseDecimal(document.getElementById("fPrice").value);
     var price = totalCost / qty;
     var id = document.getElementById("editId").value;
 
