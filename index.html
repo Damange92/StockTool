@@ -38,6 +38,9 @@
     color:var(--text); font-size:18px; display:flex; align-items:center; justify-content:center;
     box-shadow:0 1px 2px rgba(0,0,0,0.08);}
   .iconbtn:active{opacity:0.6;}
+  #hideValuesBtn{position:relative;}
+  #hideValuesBtn.hidden::after{content:""; position:absolute; width:22px; height:2px;
+    background:var(--text); top:50%; left:50%; margin-top:-1px; margin-left:-11px; transform:rotate(-45deg);}
   .headerBtns{display:flex; gap:8px;}
   .spin{animation:spin 0.9s linear infinite;}
   @keyframes spin{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
@@ -107,6 +110,7 @@
     <div class="sub" id="lastUpdate">Non ancora aggiornato</div>
   </div>
   <div class="headerBtns">
+    <button class="iconbtn" id="hideValuesBtn" title="Mostra/nascondi valori">&#128065;</button>
     <button class="iconbtn" id="refreshBtn" title="Aggiorna">&#8635;</button>
     <button class="iconbtn" id="settingsBtn" title="Impostazioni">&#9881;</button>
   </div>
@@ -193,6 +197,7 @@
 
   var STORAGE_POSITIONS = "pf_positions_v1";
   var STORAGE_APIKEY = "pf_finnhub_key_v1";
+  var STORAGE_HIDE = "pf_hide_values_v1";
   var AUTO_REFRESH_MS = 60000;
 
   var state = {
@@ -201,6 +206,7 @@
     fxRate: null,       // EUR per 1 USD
     fxError: false,
     apiKey: localStorage.getItem(STORAGE_APIKEY) || "",
+    hideValues: localStorage.getItem(STORAGE_HIDE) === "1",
     refreshing: false
   };
 
@@ -396,13 +402,21 @@
       });
     });
 
-    document.getElementById("totInvested").textContent = fmtEUR(totInvested);
-    document.getElementById("totCurrent").textContent = hasCurrent ? fmtEUR(totCurrent) : "—";
     var totGainEUR = hasCurrent ? (totCurrent - totInvested) : null;
     var totGainPct = (hasCurrent && totInvested > 0) ? (totGainEUR / totInvested) * 100 : null;
     var gainEl = document.getElementById("totGain");
-    gainEl.textContent = totGainEUR != null ? (fmtEUR(totGainEUR) + " (" + fmtPct(totGainPct) + ")") : "—";
-    gainEl.className = "value " + (totGainEUR == null ? "" : (totGainEUR >= 0 ? "pos" : "neg"));
+
+    if(state.hideValues){
+      document.getElementById("totInvested").textContent = "—";
+      document.getElementById("totCurrent").textContent = "—";
+      gainEl.textContent = "—";
+      gainEl.className = "value";
+    } else {
+      document.getElementById("totInvested").textContent = fmtEUR(totInvested);
+      document.getElementById("totCurrent").textContent = hasCurrent ? fmtEUR(totCurrent) : "—";
+      gainEl.textContent = totGainEUR != null ? (fmtEUR(totGainEUR) + " (" + fmtPct(totGainPct) + ")") : "—";
+      gainEl.className = "value " + (totGainEUR == null ? "" : (totGainEUR >= 0 ? "pos" : "neg"));
+    }
 
     document.getElementById("fxRateLabel").textContent = state.fxRate
       ? ("1 $ = " + state.fxRate.toLocaleString("it-IT",{minimumFractionDigits:4,maximumFractionDigits:4}) + " €")
@@ -508,6 +522,16 @@
 
   // ---------- Refresh button ----------
   document.getElementById("refreshBtn").addEventListener("click", refreshAll);
+
+  // ---------- Hide values button ----------
+  var hideValuesBtn = document.getElementById("hideValuesBtn");
+  hideValuesBtn.classList.toggle("hidden", state.hideValues);
+  hideValuesBtn.addEventListener("click", function(){
+    state.hideValues = !state.hideValues;
+    localStorage.setItem(STORAGE_HIDE, state.hideValues ? "1" : "0");
+    hideValuesBtn.classList.toggle("hidden", state.hideValues);
+    render();
+  });
 
   // ---------- Init ----------
   if("serviceWorker" in navigator){

@@ -1,4 +1,4 @@
-const CACHE_NAME = "portafoglio-shell-v5";
+const CACHE_NAME = "portafoglio-shell-v6";
 const SHELL_FILES = [
   "./index.html",
   "./manifest.json",
